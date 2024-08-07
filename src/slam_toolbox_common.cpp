@@ -401,7 +401,8 @@ bool SlamToolbox::updateMap()
     return false;
   }
 
-  vis_utils::toNavMap(occ_grid, map_.map);
+  /*vis_utils::toNavMap(occ_grid, map_.map);*/
+  vis_utils::toRatioNavMap(occ_grid, map_.map);
 
   // publish map as current
   map_.map.header.stamp = scan_header.stamp;

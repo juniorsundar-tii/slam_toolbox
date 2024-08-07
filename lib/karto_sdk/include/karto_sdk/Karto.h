@@ -5961,6 +5961,9 @@ public:
     return pOccupancyGrid;
   }
 
+  inline const Grid<kt_int32u> * GetCellPassCnts() const { return m_pCellPassCnt; }
+  inline const Grid<kt_int32u> * GetCellHitsCnts() const { return m_pCellHitsCnt; }
+
   /**
    * Make a clone
    * @return occupancy grid clone

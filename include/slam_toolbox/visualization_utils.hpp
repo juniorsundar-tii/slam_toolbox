@@ -140,6 +140,39 @@ inline void toNavMap(
   }
 }
 
+inline void toRatioNavMap(
+  const karto::OccupancyGrid * occ_grid,
+  nav_msgs::msg::OccupancyGrid & map)
+{
+  // Translate to ROS format
+  kt_int32s width = occ_grid->GetWidth();
+  kt_int32s height = occ_grid->GetHeight();
+  karto::Vector2<kt_double> offset =
+    occ_grid->GetCoordinateConverter()->GetOffset();
+
+  if (map.info.width != (unsigned int) width ||
+    map.info.height != (unsigned int) height ||
+    map.info.origin.position.x != offset.GetX() ||
+    map.info.origin.position.y != offset.GetY())
+  {
+    map.info.origin.position.x = offset.GetX();
+    map.info.origin.position.y = offset.GetY();
+    map.info.width = width;
+    map.info.height = height;
+    map.data.resize(map.info.width * map.info.height);
+  }
+
+  kt_int32u * pCellPassCntPtr = occ_grid->GetCellPassCnts()->GetDataPointer();
+  kt_int32u * pCellHitCntPtr = occ_grid->GetCellHitsCnts()->GetDataPointer();
+  for (kt_int32s y = 0; y < height; y++) {
+    for (kt_int32s x = 0; x < width; x++) {
+      kt_double hitRatio = static_cast<kt_double>(pCellHitCntPtr[y*width + x]) / static_cast<kt_double>(pCellPassCntPtr[y*width + x]);
+      map.data[MAP_IDX(map.info.width, x, y)] = static_cast<int>(hitRatio*100);
+    }
+  }
+}
+
+
 }  // namespace vis_utils
 
 #endif  // SLAM_TOOLBOX__VISUALIZATION_UTILS_HPP_
