@@ -166,7 +166,8 @@ inline void toRatioNavMap(
   kt_int32u * pCellHitCntPtr = occ_grid->GetCellHitsCnts()->GetDataPointer();
   for (kt_int32s y = 0; y < height; y++) {
     for (kt_int32s x = 0; x < width; x++) {
-      kt_double hitRatio = static_cast<kt_double>(pCellHitCntPtr[y*width + x]) / static_cast<kt_double>(pCellPassCntPtr[y*width + x]);
+      kt_double hitRatio = static_cast<kt_double>(pCellHitCntPtr[y*width + x])
+                           / static_cast<kt_double>(pCellPassCntPtr[y*width + x]);
       map.data[MAP_IDX(map.info.width, x, y)] = static_cast<int>(hitRatio*100);
     }
   }

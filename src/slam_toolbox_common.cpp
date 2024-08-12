@@ -144,7 +144,9 @@ void SlamToolbox::setParams()
     resolution_ = 0.05;
   }
   map_name_ = std::string("/map");
+  ratio_map_name_ = std::string("/ratio_map");
   map_name_ = this->declare_parameter("map_name", map_name_);
+  ratio_map_name_ = this->declare_parameter("ratio_map_name", ratio_map_name_);
 
   use_map_saver_ = true;
   use_map_saver_ = this->declare_parameter("use_map_saver", use_map_saver_);
@@ -208,6 +210,11 @@ void SlamToolbox::setROSInterfaces()
 
   pose_pub_ = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
     "pose", 10);
+  ratio_sst_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>(
+    ratio_map_name_, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
+  ratio_sstm_ = this->create_publisher<nav_msgs::msg::MapMetaData>(
+    ratio_map_name_ + "_metadata",
+    rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
   sst_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>(
     map_name_, rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
   sstm_ = this->create_publisher<nav_msgs::msg::MapMetaData>(
@@ -401,14 +408,20 @@ bool SlamToolbox::updateMap()
     return false;
   }
 
-  /*vis_utils::toNavMap(occ_grid, map_.map);*/
-  vis_utils::toRatioNavMap(occ_grid, map_.map);
-
+  vis_utils::toNavMap(occ_grid, map_.map);
   // publish map as current
   map_.map.header.stamp = scan_header.stamp;
   sst_->publish(
     std::move(std::make_unique<nav_msgs::msg::OccupancyGrid>(map_.map)));
   sstm_->publish(
+    std::move(std::make_unique<nav_msgs::msg::MapMetaData>(map_.map.info)));
+
+    vis_utils::toRatioNavMap(occ_grid, map_.map);
+  // publish map as current
+  map_.map.header.stamp = scan_header.stamp;
+  ratio_sst_->publish(
+    std::move(std::make_unique<nav_msgs::msg::OccupancyGrid>(map_.map)));
+  ratio_sstm_->publish(
     std::move(std::make_unique<nav_msgs::msg::MapMetaData>(map_.map.info)));
 
   delete occ_grid;
